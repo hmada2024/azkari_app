@@ -1,6 +1,6 @@
 // lib/data/services/database_helper.dart
-
 import 'dart:io';
+import 'package:azkari_app/data/models/tasbih_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
@@ -57,8 +57,8 @@ class DatabaseHelper {
 
   Future<List<String>> getCategories() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-        await db.rawQuery('SELECT DISTINCT category FROM adhkar ORDER BY category');
+    final List<Map<String, dynamic>> maps = await db
+        .rawQuery('SELECT DISTINCT category FROM adhkar ORDER BY category');
     if (maps.isEmpty) return [];
     return List.generate(maps.length, (i) => maps[i]['category'] as String);
   }
@@ -75,8 +75,48 @@ class DatabaseHelper {
       whereArgs: ids,
     );
     // للحفاظ على ترتيب المفضلة
-    final adhkarList = List.generate(maps.length, (i) => AdhkarModel.fromMap(maps[i]));
+    final adhkarList =
+        List.generate(maps.length, (i) => AdhkarModel.fromMap(maps[i]));
     adhkarList.sort((a, b) => ids.indexOf(a.id).compareTo(ids.indexOf(b.id)));
     return adhkarList;
+  }
+
+  // دالة لجلب كل التسابيح المخصصة مرتبة
+  Future<List<TasbihModel>> getCustomTasbihList() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'custom_tasbih',
+      orderBy: 'sort_order ASC',
+    );
+    return List.generate(maps.length, (i) => TasbihModel.fromMap(maps[i]));
+  }
+
+  // دالة لإضافة تسبيح جديد
+  // ملاحظة: سنحتاج إلى جعل قاعدة البيانات قابلة للكتابة مؤقتًا لهذه العملية
+  Future<TasbihModel> addTasbih(String text) async {
+    // إعادة فتح قاعدة البيانات في وضع القراءة والكتابة
+    // هذا حل بسيط. الحل الأكثر تعقيدًا هو إدارة اتصالين منفصلين
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, _dbName);
+    final db = await openDatabase(path); // فتح في وضع القراءة/الكتابة
+
+    // الحصول على أعلى قيمة لـ sort_order لإضافة العنصر الجديد في النهاية
+    final lastItem = await db
+        .rawQuery("SELECT MAX(sort_order) as max_order FROM custom_tasbih");
+    int newSortOrder = (lastItem.first['max_order'] as int? ?? 0) + 1;
+
+    final newTasbih = {
+      'text': text,
+      'sort_order': newSortOrder,
+    };
+
+    final id = await db.insert('custom_tasbih', newTasbih);
+
+    // أغلق الاتصال القابل للكتابة لضمان العودة للوضع الافتراضي
+    await db.close();
+    // إعادة تعيين اتصال قاعدة البيانات الرئيسية ليتم إعادة فتحه في وضع القراءة فقط عند الطلب التالي
+    _database = null;
+
+    return TasbihModel(id: id, text: text, sortOrder: newSortOrder);
   }
 }
