@@ -190,7 +190,7 @@ class TasbihScreen extends ConsumerWidget {
                         final tasbih = tasbihList[index];
                         final wasUsedToday = usedTodayIds.contains(tasbih.id);
 
-                        //  بداية التعديل الرئيسي 
+                        //  بداية التعديل الرئيسي
                         return ListTile(
                           title: Text(tasbih.text,
                               maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -275,7 +275,7 @@ class TasbihScreen extends ConsumerWidget {
     );
   }
 
-  //  دالة جديدة لعرض نافذة تأكيد الحذف 
+  //  دالة جديدة لعرض نافذة تأكيد الحذف
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
     showDialog(
