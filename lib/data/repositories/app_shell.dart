@@ -1,8 +1,9 @@
+// lib/data/repositories/app_shell.dart
+import 'package:azkari_app/features/tasbih/tasbih_screen.dart'; 
 import 'package:azkari_app/features/favorites/favorites_screen.dart';
 import 'package:azkari_app/features/home/home_screen.dart';
 import 'package:flutter/material.dart';
 
-// هذا الويدجت هو الهيكل الرئيسي الجديد للتطبيق الذي يحتوي على شريط التنقل السفلي
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -13,8 +14,11 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
 
+  // 2. أضف شاشة السبحة إلى قائمة الشاشات
+  // الترتيب المقترح: الرئيسية، السبحة، المفضلة
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
+    TasbihScreen(), // <-- الإضافة هنا
     FavoritesScreen(),
   ];
 
@@ -26,18 +30,24 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    // نستخدم IndexedStack للحفاظ على حالة الشاشات عند التنقل بينها
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: _widgetOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        // 3. أضف أيقونة السبحة إلى شريط التنقل
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'الرئيسية',
+          ),
+          BottomNavigationBarItem(
+            // يمكنك اختيار أيقونة أخرى تراها مناسبة
+            icon: Icon(Icons.fingerprint),
+            activeIcon: Icon(Icons.fingerprint),
+            label: 'السبحة',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.star_border_outlined),
