@@ -1,5 +1,6 @@
 import 'package:azkari_app/data/models/adhkar_model.dart';
 import 'package:azkari_app/data/services/database_helper.dart';
+import 'package:azkari_app/data/models/tasbih_model.dart';
 
 // طبقة المستودع التي تعمل كوسيط بين منطق التطبيق ومصدر البيانات
 class AdhkarRepository {
@@ -19,5 +20,13 @@ class AdhkarRepository {
   Future<List<AdhkarModel>> getAdhkarByIds(List<int> ids) async {
     if (ids.isEmpty) return [];
     return _dbHelper.getAdhkarByIds(ids);
+  }
+
+  Future<List<TasbihModel>> getCustomTasbihList() {
+    return _dbHelper.getCustomTasbihList();
+  }
+
+  Future<TasbihModel> addTasbih(String text) {
+    return _dbHelper.addTasbih(text);
   }
 }
