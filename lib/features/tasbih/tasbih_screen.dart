@@ -49,11 +49,16 @@ class TasbihScreen extends ConsumerWidget {
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
           // العثور على نص الذكر النشط
+          // ✨ تم إصلاح خطأ بسيط هنا بإضافة isDeletable
           final activeTasbih = tasbihList.firstWhere(
             (t) => t.id == tasbihState.activeTasbihId,
             orElse: () => tasbihList.isNotEmpty
                 ? tasbihList.first
-                : TasbihModel(id: -1, text: 'اختر ذكرًا للبدء', sortOrder: 0),
+                : TasbihModel(
+                    id: -1,
+                    text: 'اختر ذكرًا للبدء',
+                    sortOrder: 0,
+                    isDeletable: false),
           );
 
           return Padding(
@@ -146,57 +151,89 @@ class TasbihScreen extends ConsumerWidget {
       List<TasbihModel> tasbihList, Set<int> usedTodayIds) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // للسماح بتمدد القائمة
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('اختر من قائمة التسابيح',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline),
-                        tooltip: 'إضافة ذكر جديد',
-                        onPressed: () {
-                          Navigator.pop(context); // أغلق الـ bottom sheet أولاً
-                          _showAddTasbihDialog(context, ref);
-                        },
-                      )
-                    ],
+        return DraggableScrollableSheet(
+            initialChildSize: 0.6, // تبدأ القائمة بحجم 60% من الشاشة
+            minChildSize: 0.4,
+            maxChildSize: 0.9, // يمكن تمديدها حتى 90%
+            expand: false,
+            builder: (_, scrollController) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('اختر من قائمة التسابيح',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          tooltip: 'إضافة ذكر جديد',
+                          onPressed: () {
+                            Navigator.pop(
+                                context); // أغلق الـ bottom sheet أولاً
+                            _showAddTasbihDialog(context, ref);
+                          },
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: tasbihList.length,
-                    itemBuilder: (context, index) {
-                      final tasbih = tasbihList[index];
-                      final bool wasUsedToday =
-                          usedTodayIds.contains(tasbih.id);
-                      return ListTile(
-                        title: Text(tasbih.text,
-                            maxLines: 2, overflow: TextOverflow.ellipsis),
-                        trailing: wasUsedToday
-                            ? const Icon(Icons.check_circle, color: Colors.green)
-                            : null,
-                        onTap: () {
-                          ref
-                              .read(tasbihStateProvider.notifier)
-                              .setActiveTasbih(tasbih.id);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
+                  Expanded(
+                    child: ListView.builder(
+                      controller:
+                          scrollController, // استخدام الـ controller للسحب
+                      itemCount: tasbihList.length,
+                      itemBuilder: (context, index) {
+                        final tasbih = tasbihList[index];
+                        final wasUsedToday = usedTodayIds.contains(tasbih.id);
+
+                        //  بداية التعديل الرئيسي 
+                        return ListTile(
+                          title: Text(tasbih.text,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (wasUsedToday)
+                                const Icon(Icons.check_circle,
+                                    color: Colors.green, size: 20),
+                              if (wasUsedToday && tasbih.isDeletable)
+                                const SizedBox(width: 8), // مسافة فاصلة
+
+                              // عرض أيقونة الحذف فقط إذا كان العنصر قابلاً للحذف
+                              if (tasbih.isDeletable)
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: Icon(Icons.delete_outline,
+                                      color: Colors.red.shade400),
+                                  tooltip: 'حذف الذكر',
+                                  onPressed: () {
+                                    Navigator.pop(
+                                        context); // أغلق القائمة أولاً
+                                    _showDeleteConfirmationDialog(
+                                        context, ref, tasbih);
+                                  },
+                                ),
+                            ],
+                          ),
+                          onTap: () {
+                            ref
+                                .read(tasbihStateProvider.notifier)
+                                .setActiveTasbih(tasbih.id);
+                            Navigator.pop(context);
+                          },
+                        );
+                        // نهاية التعديل الرئيسي
+                      },
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
-        );
+                ],
+              );
+            });
       },
     );
   }
@@ -230,6 +267,39 @@ class TasbihScreen extends ConsumerWidget {
                       .addTasbih(controller.text.trim());
                   Navigator.pop(context);
                 }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //  دالة جديدة لعرض نافذة تأكيد الحذف 
+  void _showDeleteConfirmationDialog(
+      BuildContext context, WidgetRef ref, TasbihModel tasbih) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content:
+              Text('هل أنت متأكد من رغبتك في حذف "${tasbih.text}" بشكل نهائي؟'),
+          actions: [
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: const Text('حذف'),
+              onPressed: () {
+                // استدعاء دالة الحذف من الـ provider
+                ref.read(tasbihStateProvider.notifier).deleteTasbih(tasbih.id);
+                // إغلاق نافذة التأكيد
+                Navigator.pop(context);
               },
             ),
           ],
