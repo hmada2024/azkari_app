@@ -1,5 +1,6 @@
 // lib/features/tasbih/tasbih_screen.dart
 
+import 'package:azkari_app/core/utils/size_config.dart'; // ✨ استيراد جديد
 import 'package:azkari_app/data/models/tasbih_model.dart';
 import 'package:azkari_app/features/tasbih/tasbih_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,134 +12,139 @@ class TasbihScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // مراقبة الحالة الكاملة للسبحة
+    // ✨ تهيئة أبعاد الشاشة في بداية البناء
+    SizeConfig().init(context);
+
     final tasbihState = ref.watch(tasbihStateProvider);
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
-
-    // جلب قائمة التسابيح
     final tasbihListAsync = ref.watch(tasbihListProvider);
 
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('السبحة الإلكترونية'),
-        actions: [
-          // زر إعادة تعيين العداد
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'تصفير العداد',
-            onPressed: tasbihNotifier.resetCount,
-          ),
-          // زر اختيار الذكر
-          IconButton(
-            icon: const Icon(Icons.list_alt_rounded),
-            tooltip: 'اختيار الذكر',
-            onPressed: () {
-              tasbihListAsync.whenData((tasbihList) {
-                _showTasbihSelectionSheet(
-                    context, ref, tasbihList, tasbihState.usedTodayIds);
-              });
-            },
-          ),
-        ],
-      ),
       body: tasbihListAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
-          // العثور على نص الذكر النشط
-          // ✨ تم إصلاح خطأ بسيط هنا بإضافة isDeletable
           final activeTasbih = tasbihList.firstWhere(
             (t) => t.id == tasbihState.activeTasbihId,
             orElse: () => tasbihList.isNotEmpty
                 ? tasbihList.first
                 : TasbihModel(
                     id: -1,
-                    text: 'اختر ذكرًا للبدء',
+                    text: 'اختر ذكرًا للبدء من القائمة',
                     sortOrder: 0,
                     isDeletable: false),
           );
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // --- منطقة عرض الذكر ---
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: theme.dividerColor)),
-                  child: Text(
-                    activeTasbih.text,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Amiri',
-                      fontSize: 20,
-                      color: theme.textTheme.bodyLarge?.color,
-                      height: 1.7,
+          return SafeArea(
+            // ✨ إضافة SafeArea لتجنب التداخل مع عناصر النظام
+            child: Padding(
+              // ✨ استخدام قيم متجاوبة للهوامش
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.screenWidth * 0.05),
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceAround, // ✨ تعديل التوزيع
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // --- منطقة التحكم والأزرار ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildControlButton(
+                        context: context,
+                        icon: Icons.list_alt_rounded,
+                        tooltip: 'اختيار الذكر',
+                        onPressed: () {
+                          _showTasbihSelectionSheet(context, ref, tasbihList,
+                              tasbihState.usedTodayIds);
+                        },
+                      ),
+                      Text(
+                        'السبحة',
+                        style: TextStyle(
+                          fontSize: SizeConfig.getResponsiveSize(22),
+                          fontWeight: FontWeight.bold,
+                          color: theme.primaryColor,
+                        ),
+                      ),
+                      _buildControlButton(
+                        context: context,
+                        icon: Icons.refresh,
+                        tooltip: 'تصفير العداد',
+                        onPressed: tasbihNotifier.resetCount,
+                      ),
+                    ],
+                  ),
+
+                  // --- منطقة عرض الذكر ---
+                  Container(
+                    padding:
+                        EdgeInsets.all(SizeConfig.getResponsiveSize(16)), // ✨
+                    decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(
+                            SizeConfig.getResponsiveSize(12)), // ✨
+                        border: Border.all(color: theme.dividerColor)),
+                    child: Text(
+                      activeTasbih.text,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Amiri',
+                        fontSize: SizeConfig.getResponsiveSize(20), // ✨
+                        color: theme.textTheme.bodyLarge?.color,
+                        height: 1.7,
+                      ),
                     ),
                   ),
-                ),
 
-                // --- منطقة العداد ---
-                Center(
-                  child: Text(
-                    tasbihState.count.toString(),
-                    style: TextStyle(
-                      fontSize: 80,
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : theme.primaryColor,
-                    ),
-                  ),
-                ),
-
-                // --- زر التسبيح ---
-                Center(
-                  child: GestureDetector(
+                  // --- منطقة العداد وزر التسبيح مدمجة ---
+                  GestureDetector(
                     onTap: () {
                       if (tasbihState.activeTasbihId == null &&
                           tasbihList.isNotEmpty) {
-                        // تحديد الذكر الأول تلقائيًا إذا لم يتم تحديد أي ذكر
                         tasbihNotifier.setActiveTasbih(tasbihList.first.id);
                       }
                       tasbihNotifier.increment();
                       HapticFeedback.lightImpact();
                     },
                     child: Container(
-                      width: 180,
-                      height: 180,
+                      // ✨ استخدام نسبة من عرض الشاشة للحجم
+                      width: SizeConfig.screenWidth * 0.6,
+                      height: SizeConfig.screenWidth * 0.6,
                       decoration: BoxDecoration(
-                        color: isDarkMode ? Colors.white : theme.primaryColor,
+                        color: theme.scaffoldBackgroundColor,
                         shape: BoxShape.circle,
+                        border: Border.all(
+                            color: theme.primaryColor.withOpacity(0.5),
+                            width: 4),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
+                            color: theme.primaryColor.withOpacity(0.2),
+                            spreadRadius: 5,
+                            blurRadius: 15,
                           ),
                         ],
                       ),
                       child: Center(
                         child: Text(
-                          'سبّح',
+                          tasbihState.count.toString(),
                           style: TextStyle(
-                            color: isDarkMode ? Colors.black : Colors.white,
-                            fontSize: 32,
+                            // ✨ استخدام getResponsiveSize
+                            fontSize: SizeConfig.getResponsiveSize(75),
                             fontWeight: FontWeight.bold,
+                            color:
+                                isDarkMode ? Colors.white : theme.primaryColor,
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox.shrink(), // لإدارة المسافات
+                ],
+              ),
             ),
           );
         },
@@ -146,17 +152,46 @@ class TasbihScreen extends ConsumerWidget {
     );
   }
 
-  // دالة لعرض القائمة المنبثقة لاختيار الذكر
+  // ✨ ويدجت مساعد لإنشاء الأزرار العلوية
+  Widget _buildControlButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    final theme = Theme.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(50),
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.getResponsiveSize(10)),
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.cardColor,
+              border: Border.all(color: theme.dividerColor.withOpacity(0.5))),
+          child: Icon(
+            icon,
+            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
+            size: SizeConfig.getResponsiveSize(24),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // دالة عرض القائمة المنبثقة (لم تتغير وظيفتها الأساسية)
   void _showTasbihSelectionSheet(BuildContext context, WidgetRef ref,
       List<TasbihModel> tasbihList, Set<int> usedTodayIds) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // للسماح بتمدد القائمة
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
-            initialChildSize: 0.6, // تبدأ القائمة بحجم 60% من الشاشة
+            initialChildSize: 0.6,
             minChildSize: 0.4,
-            maxChildSize: 0.9, // يمكن تمديدها حتى 90%
+            maxChildSize: 0.9,
             expand: false,
             builder: (_, scrollController) {
               return Column(
@@ -173,8 +208,7 @@ class TasbihScreen extends ConsumerWidget {
                           icon: const Icon(Icons.add_circle_outline),
                           tooltip: 'إضافة ذكر جديد',
                           onPressed: () {
-                            Navigator.pop(
-                                context); // أغلق الـ bottom sheet أولاً
+                            Navigator.pop(context);
                             _showAddTasbihDialog(context, ref);
                           },
                         )
@@ -183,14 +217,11 @@ class TasbihScreen extends ConsumerWidget {
                   ),
                   Expanded(
                     child: ListView.builder(
-                      controller:
-                          scrollController, // استخدام الـ controller للسحب
+                      controller: scrollController,
                       itemCount: tasbihList.length,
                       itemBuilder: (context, index) {
                         final tasbih = tasbihList[index];
                         final wasUsedToday = usedTodayIds.contains(tasbih.id);
-
-                        //  بداية التعديل الرئيسي
                         return ListTile(
                           title: Text(tasbih.text,
                               maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -201,9 +232,7 @@ class TasbihScreen extends ConsumerWidget {
                                 const Icon(Icons.check_circle,
                                     color: Colors.green, size: 20),
                               if (wasUsedToday && tasbih.isDeletable)
-                                const SizedBox(width: 8), // مسافة فاصلة
-
-                              // عرض أيقونة الحذف فقط إذا كان العنصر قابلاً للحذف
+                                const SizedBox(width: 8),
                               if (tasbih.isDeletable)
                                 IconButton(
                                   padding: EdgeInsets.zero,
@@ -212,8 +241,7 @@ class TasbihScreen extends ConsumerWidget {
                                       color: Colors.red.shade400),
                                   tooltip: 'حذف الذكر',
                                   onPressed: () {
-                                    Navigator.pop(
-                                        context); // أغلق القائمة أولاً
+                                    Navigator.pop(context);
                                     _showDeleteConfirmationDialog(
                                         context, ref, tasbih);
                                   },
@@ -227,7 +255,6 @@ class TasbihScreen extends ConsumerWidget {
                             Navigator.pop(context);
                           },
                         );
-                        // نهاية التعديل الرئيسي
                       },
                     ),
                   ),
@@ -238,7 +265,7 @@ class TasbihScreen extends ConsumerWidget {
     );
   }
 
-  // دالة لعرض نافذة إضافة ذكر جديد
+  // الدوال المساعدة للحذف والإضافة (تبقى كما هي)
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
     showDialog(
@@ -275,7 +302,6 @@ class TasbihScreen extends ConsumerWidget {
     );
   }
 
-  //  دالة جديدة لعرض نافذة تأكيد الحذف
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
     showDialog(
@@ -296,9 +322,7 @@ class TasbihScreen extends ConsumerWidget {
               ),
               child: const Text('حذف'),
               onPressed: () {
-                // استدعاء دالة الحذف من الـ provider
                 ref.read(tasbihStateProvider.notifier).deleteTasbih(tasbih.id);
-                // إغلاق نافذة التأكيد
                 Navigator.pop(context);
               },
             ),
