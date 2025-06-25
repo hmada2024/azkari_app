@@ -93,12 +93,8 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => TasbihModel.fromMap(maps[i]));
   }
 
-  // دالة لإضافة تسبيح جديد
-  // ملاحظة: سنحتاج إلى جعل قاعدة البيانات قابلة للكتابة مؤقتًا لهذه العملية
   Future<TasbihModel> addTasbih(String text) async {
     final db = await database;
-
-    // الحصول على أعلى قيمة لـ sort_order لإضافة العنصر الجديد في النهاية
     final lastItem = await db
         .rawQuery("SELECT MAX(sort_order) as max_order FROM custom_tasbih");
     int newSortOrder = (lastItem.first['max_order'] as int? ?? 0) + 1;
@@ -106,11 +102,20 @@ class DatabaseHelper {
     final newTasbih = {
       'text': text,
       'sort_order': newSortOrder,
+      'is_deletable': 1,
     };
 
     final id = await db.insert('custom_tasbih', newTasbih);
+    return TasbihModel(
+        id: id, text: text, sortOrder: newSortOrder, isDeletable: true);
+  }
 
-
-    return TasbihModel(id: id, text: text, sortOrder: newSortOrder);
+  Future<void> deleteTasbih(int id) async {
+    final db = await database;
+    await db.delete(
+      'custom_tasbih',
+      where: 'id = ? AND is_deletable = ?', // شرط إضافي للأمان
+      whereArgs: [id, 1],
+    );
   }
 }
