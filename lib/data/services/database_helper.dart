@@ -25,23 +25,25 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _dbName);
 
-    if (await databaseExists(path)) {
-      debugPrint("Database already exists at $path. Opening it.");
-      return await openDatabase(path, readOnly: true);
+    bool dbExists = await databaseExists(path);
+
+    if (!dbExists) {
+      debugPrint("Database not found. Copying from assets...");
+      try {
+        ByteData data = await rootBundle.load("assets/database_files/$_dbName");
+        List<int> bytes =
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        await File(path).writeAsBytes(bytes, flush: true);
+        debugPrint("Database copied successfully to $path");
+      } catch (e) {
+        debugPrint("Error copying database: $e");
+        throw Exception("Failed to copy database from assets: $e");
+      }
+    } else {
+      debugPrint("Database already exists at $path.");
     }
 
-    debugPrint("Database not found. Copying from assets...");
-    try {
-      ByteData data = await rootBundle.load("assets/database_files/$_dbName");
-      List<int> bytes =
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      await File(path).writeAsBytes(bytes, flush: true);
-      debugPrint("Database copied successfully to $path");
-    } catch (e) {
-      debugPrint("Error copying database: $e");
-      throw Exception("Failed to copy database from assets: $e");
-    }
-    return await openDatabase(path, readOnly: true);
+    return await openDatabase(path);
   }
 
   Future<List<AdhkarModel>> getAdhkarByCategory(String category) async {
@@ -94,11 +96,7 @@ class DatabaseHelper {
   // دالة لإضافة تسبيح جديد
   // ملاحظة: سنحتاج إلى جعل قاعدة البيانات قابلة للكتابة مؤقتًا لهذه العملية
   Future<TasbihModel> addTasbih(String text) async {
-    // إعادة فتح قاعدة البيانات في وضع القراءة والكتابة
-    // هذا حل بسيط. الحل الأكثر تعقيدًا هو إدارة اتصالين منفصلين
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, _dbName);
-    final db = await openDatabase(path); // فتح في وضع القراءة/الكتابة
+    final db = await database;
 
     // الحصول على أعلى قيمة لـ sort_order لإضافة العنصر الجديد في النهاية
     final lastItem = await db
@@ -112,10 +110,6 @@ class DatabaseHelper {
 
     final id = await db.insert('custom_tasbih', newTasbih);
 
-    // أغلق الاتصال القابل للكتابة لضمان العودة للوضع الافتراضي
-    await db.close();
-    // إعادة تعيين اتصال قاعدة البيانات الرئيسية ليتم إعادة فتحه في وضع القراءة فقط عند الطلب التالي
-    _database = null;
 
     return TasbihModel(id: id, text: text, sortOrder: newSortOrder);
   }
