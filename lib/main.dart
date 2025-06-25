@@ -10,7 +10,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // ✨✨✨ تم حذف كل ما يتعلق بتهيئة الإشعارات و timezone ✨✨✨
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     sqfliteFfiInit();
