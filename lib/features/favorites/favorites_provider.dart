@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 1. Provider لإدارة قائمة IDs المفضلة
-final favoritesProvider = StateNotifierProvider<FavoritesNotifier, List<int>>((ref) {
+final favoritesProvider =
+    StateNotifierProvider<FavoritesNotifier, List<int>>((ref) {
   return FavoritesNotifier();
 });
 
@@ -30,7 +31,7 @@ class FavoritesNotifier extends StateNotifier<List<int>> {
     } else {
       currentFavorites.add(adhkarId);
     }
-    
+
     state = currentFavorites;
     await prefs.setStringList(
         _favoritesKey, currentFavorites.map((id) => id.toString()).toList());
@@ -41,10 +42,10 @@ class FavoritesNotifier extends StateNotifier<List<int>> {
 final favoriteAdhkarProvider = FutureProvider<List<AdhkarModel>>((ref) async {
   final favoriteIds = ref.watch(favoritesProvider);
   final repository = ref.watch(adhkarRepositoryProvider);
-  
+
   if (favoriteIds.isEmpty) {
     return [];
   }
-  
+
   return repository.getAdhkarByIds(favoriteIds);
 });
