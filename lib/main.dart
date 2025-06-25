@@ -10,6 +10,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // ✨✨✨ تم حذف كل ما يتعلق بتهيئة الإشعارات و timezone ✨✨✨
+
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
@@ -25,7 +27,6 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final settings = ref.watch(settingsProvider);
 
     return MaterialApp(
@@ -40,7 +41,6 @@ class MyApp extends ConsumerWidget {
         Locale('ar', 'SA'),
       ],
       locale: const Locale('ar', 'SA'),
-      
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.teal,
@@ -51,21 +51,10 @@ class MyApp extends ConsumerWidget {
           elevation: 1.0,
           centerTitle: true,
           iconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        cardTheme: CardTheme(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
       ),
-
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.teal,
@@ -78,25 +67,13 @@ class MyApp extends ConsumerWidget {
           elevation: 1.0,
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.tealAccent),
-          titleTextStyle: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.tealAccent.shade100,
-          ),
+          titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 22, fontWeight: FontWeight.bold, color: Colors.tealAccent.shade100),
         ),
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+        cardTheme: CardTheme(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
         iconTheme: const IconThemeData(color: Colors.tealAccent),
         dividerColor: Colors.white24,
       ),
-
       themeMode: settings.themeMode,
-
       home: const SplashScreen(),
     );
   }

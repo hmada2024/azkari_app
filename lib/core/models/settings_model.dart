@@ -4,6 +4,8 @@ class SettingsModel {
   final ThemeMode themeMode;
   final double fontScale;
 
+  // ✨✨✨ تم حذف كل ما يتعلق بالإشعارات ✨✨✨
+
   SettingsModel({
     this.themeMode = ThemeMode.system,
     this.fontScale = 1.0,

@@ -1,6 +1,6 @@
+import 'package:azkari_app/core/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:azkari_app/core/providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -18,16 +18,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // قسم المظهر
-          Text(
-            'المظهر',
-            style: TextStyle(
-              color: theme.primaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
+          _buildSectionTitle('المظهر', theme),
           Card(
             child: Column(
               children: [
@@ -35,77 +26,64 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('فاتح'),
                   value: ThemeMode.light,
                   groupValue: settings.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingsNotifier.updateTheme(value);
-                    }
-                  },
+                  onChanged: (value) => settingsNotifier.updateTheme(value!),
                 ),
                 RadioListTile<ThemeMode>(
                   title: const Text('داكن'),
                   value: ThemeMode.dark,
                   groupValue: settings.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingsNotifier.updateTheme(value);
-                    }
-                  },
+                  onChanged: (value) => settingsNotifier.updateTheme(value!),
                 ),
                 RadioListTile<ThemeMode>(
                   title: const Text('حسب النظام'),
                   value: ThemeMode.system,
                   groupValue: settings.themeMode,
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingsNotifier.updateTheme(value);
-                    }
-                  },
+                  onChanged: (value) => settingsNotifier.updateTheme(value!),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-
-          // قسم حجم الخط
-          Text(
-            'حجم الخط',
-            style: TextStyle(
-              color: theme.primaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
+          _buildSectionTitle('حجم الخط', theme),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Text(
-                    'سبحان الله وبحمده، سبحان الله العظيم',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Amiri',
-                      fontSize: 20 * settings.fontScale, // تطبيق حجم الخط
-                    ),
-                  ),
+                  Text('سبحان الله وبحمده، سبحان الله العظيم',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontFamily: 'Amiri', fontSize: 20 * settings.fontScale)),
                   const SizedBox(height: 16),
                   Slider(
                     value: settings.fontScale,
-                    min: 0.8, // 80%
-                    max: 1.5, // 150%
-                    divisions: 7, // عدد النقاط على الشريط
+                    min: 0.8,
+                    max: 1.5,
+                    divisions: 7,
                     label: '${(settings.fontScale * 100).toStringAsFixed(0)}%',
-                    onChanged: (value) {
-                      settingsNotifier.updateFontScale(value);
-                    },
+                    onChanged: (value) => settingsNotifier.updateFontScale(value),
                     activeColor: theme.primaryColor,
                   ),
                 ],
               ),
             ),
           ),
+          // ✨✨✨ تم حذف قسم الإشعارات بالكامل من الواجهة ✨✨✨
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: theme.primaryColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
       ),
     );
   }
