@@ -103,7 +103,8 @@ class TasbihScreen extends ConsumerWidget {
     required double size,
     required Widget child,
     Color? backgroundColor, // قد لا يكون له لون خلفية (مثل العداد)
-    Color? borderColor,     // قد لا يكون له إطار (على الرغم من أننا نستخدمه في كليهما)
+    Color?
+        borderColor, // قد لا يكون له إطار (على الرغم من أننا نستخدمه في كليهما)
   }) {
     return Container(
       width: size,
@@ -112,15 +113,20 @@ class TasbihScreen extends ConsumerWidget {
         color: backgroundColor,
         shape: BoxShape.circle,
         // إضافة الإطار فقط إذا تم توفير لونه
-        border: borderColor != null ? Border.all(color: borderColor, width: 3) : null,
-        boxShadow: backgroundColor != null ? [ // إضافة الظل فقط إذا كان هناك لون خلفية
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ] : null,
+        border: borderColor != null
+            ? Border.all(color: borderColor, width: 3)
+            : null,
+        boxShadow: backgroundColor != null
+            ? [
+                // إضافة الظل فقط إذا كان هناك لون خلفية
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ]
+            : null,
       ),
       child: Center(child: child),
     );
