@@ -1,5 +1,5 @@
 import 'package:azkari_app/core/providers/settings_provider.dart';
-import 'package:azkari_app/core/utils/size_config.dart'; // ✨ استيراد جديد
+import 'package:azkari_app/core/utils/size_config.dart';
 import 'package:azkari_app/features/favorites/favorites_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,9 +35,16 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
     }
   }
 
+  // ✨ دالة جديدة لإعادة العداد
+  void _resetCount() {
+    setState(() {
+      _currentCount = _initialCount;
+    });
+    HapticFeedback.mediumImpact();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ✨ تهيئة أبعاد الشاشة
     SizeConfig().init(context);
 
     final bool isFinished = _currentCount == 0;
@@ -46,7 +53,7 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
 
-    final favoriteIds = ref.watch(favoritesProvider);
+    final favoriteIds = ref.watch(favoritesIdProvider);
     final isFavorite = favoriteIds.contains(widget.adhkar.id);
 
     return Card(
@@ -62,18 +69,18 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                // ✨ استخدام قيم متجاوبة
+                // استخدام قيم متجاوبة
                 padding: EdgeInsets.fromLTRB(
                     SizeConfig.getResponsiveSize(16),
                     SizeConfig.getResponsiveSize(16),
-                    SizeConfig.getResponsiveSize(48),
+                    SizeConfig.getResponsiveSize(48), // مساحة لزر المفضلة
                     SizeConfig.getResponsiveSize(8)),
                 child: Text(
                   widget.adhkar.text,
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontFamily: 'Amiri',
-                    // ✨ استخدام قيم متجاوبة
+                    // استخدام قيم متجاوبة مع مضاعف حجم الخط من الإعدادات
                     fontSize: SizeConfig.getResponsiveSize(20) * fontScale,
                     height: 1.8,
                     color: theme.textTheme.bodyLarge?.color,
@@ -131,7 +138,8 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
               Padding(
                 padding: EdgeInsets.all(SizeConfig.getResponsiveSize(16.0)),
                 child: GestureDetector(
-                  onTap: _decrementCount,
+                  // ✨ تغيير الوظيفة بناءً على حالة العداد
+                  onTap: isFinished ? _resetCount : _decrementCount,
                   child: Container(
                     height: SizeConfig.getResponsiveSize(55),
                     clipBehavior: Clip.antiAlias,
@@ -146,8 +154,11 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                         Positioned.fill(
                           child: FractionallySizedBox(
                             alignment: Alignment.centerRight,
-                            widthFactor: progress,
-                            child: Container(
+                            widthFactor: isFinished
+                                ? 1.0
+                                : progress, // ✨ تعبئة كاملة عند الانتهاء
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
                                 color: isFinished
@@ -157,13 +168,29 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                             ),
                           ),
                         ),
-                        Text(
-                          _currentCount.toString(),
-                          style: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color,
-                            fontSize: SizeConfig.getResponsiveSize(22),
-                            fontWeight: FontWeight.bold,
-                          ),
+                        // ✨ عرض أيقونة إعادة أو النص
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                                scale: animation, child: child);
+                          },
+                          child: isFinished
+                              ? Icon(
+                                  Icons.replay,
+                                  key: const ValueKey('replay_icon'),
+                                  color: Colors.white,
+                                  size: SizeConfig.getResponsiveSize(30),
+                                )
+                              : Text(
+                                  _currentCount.toString(),
+                                  key: ValueKey('count_text_$_currentCount'),
+                                  style: TextStyle(
+                                    color: theme.textTheme.bodyLarge?.color,
+                                    fontSize: SizeConfig.getResponsiveSize(22),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -172,6 +199,7 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
               ),
             ],
           ),
+          // زر المفضلة
           Positioned(
             top: 4,
             left: 4,
@@ -181,9 +209,14 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                 color: isFavorite ? Colors.amber[600] : Colors.grey,
               ),
               onPressed: () {
+                // استدعاء الـ Notifier الصحيح لإدارة IDs المفضلة
                 ref
-                    .read(favoritesProvider.notifier)
+                    .read(favoritesIdProvider.notifier)
                     .toggleFavorite(widget.adhkar.id);
+
+                // إذا قام المستخدم بإلغاء التفضيل من شاشة المفضلة،
+                // سيتم تحديث القائمة تلقائيًا بفضل الـ Notifier الجديد.
+                // لم نعد بحاجة إلى منطق التحقق من الشاشة هنا.
               },
             ),
           ),

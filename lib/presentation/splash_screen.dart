@@ -1,44 +1,29 @@
+// lib/presentation/splash_screen.dart
 import 'package:azkari_app/data/repositories/app_shell.dart';
+import 'package:azkari_app/features/adhkar_list/adhkar_providers.dart'; // ✨ استيراد جديد
 import 'package:flutter/material.dart';
-import 'package:azkari_app/data/services/database_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✨ استيراد جديد
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerWidget {
+  // ✨ تحويل إلى ConsumerWidget
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ✨ استمع إلى حالة أول provider نحتاجه في التطبيق
+    // عندما يكون جاهزاً (data)، ننتقل إلى الشاشة الرئيسية.
+    // Riverpod سيقوم تلقائيًا بتهيئة الاعتماديات (databaseProvider).
+    ref.listen<AsyncValue<List<String>>>(categoriesProvider, (previous, next) {
+      next.whenData((data) {
+        if (data.isNotEmpty) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const AppShell()),
+          );
+        }
+      });
+    });
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _initializeApp();
-  }
-
-  Future<void> _initializeApp() async {
-    try {
-      await DatabaseHelper.instance.database;
-      if (mounted) {
-        // الانتقال إلى AppShell بدلاً من HomeScreen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AppShell()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('فشل تهيئة التطبيق: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+    // ✨ واجهة الانتظار
     return const Scaffold(
       backgroundColor: Colors.teal,
       body: Center(
@@ -50,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 20),
             Text(
-              "جاري تهيئة التطبيق...",
+              "جاري تهيئة البيانات...",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
