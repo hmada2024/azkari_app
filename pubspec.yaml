@@ -35,6 +35,9 @@ flutter:
     - assets/database_files/azkar.db
     - assets/images/app_icon.ico
     - assets/screenshots/
+    - assets/screenshots/adhkar_list_dark.png
+    - assets/screenshots/home_screen_light.png
+
 
   fonts:
     - family: Amiri
