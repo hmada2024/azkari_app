@@ -39,8 +39,9 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
     final bool isFinished = _currentCount == 0;
     final theme = Theme.of(context);
     final double progress = (_initialCount - _currentCount) / _initialCount;
-    final double fontScale = ref.watch(settingsProvider.select((s) => s.fontScale));
-    
+    final double fontScale =
+        ref.watch(settingsProvider.select((s) => s.fontScale));
+
     // مشاهدة قائمة المفضلة وتحديد ما إذا كان هذا الذكر في المفضلة
     final favoriteIds = ref.watch(favoritesProvider);
     final isFavorite = favoriteIds.contains(widget.adhkar.id);
@@ -56,7 +57,8 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 48, 8), // مساحة لزر المفضلة
+                padding: const EdgeInsets.fromLTRB(
+                    16, 16, 48, 8), // مساحة لزر المفضلة
                 child: Text(
                   widget.adhkar.text,
                   textAlign: TextAlign.right,
@@ -68,8 +70,10 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                   ),
                 ),
               ),
-              if ((widget.adhkar.virtue != null && widget.adhkar.virtue!.isNotEmpty) ||
-                  (widget.adhkar.note != null && widget.adhkar.note!.isNotEmpty))
+              if ((widget.adhkar.virtue != null &&
+                      widget.adhkar.virtue!.isNotEmpty) ||
+                  (widget.adhkar.note != null &&
+                      widget.adhkar.note!.isNotEmpty))
                 Theme(
                   data: theme.copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
@@ -84,12 +88,20 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (widget.adhkar.virtue != null && widget.adhkar.virtue!.isNotEmpty)
-                              Text(widget.adhkar.virtue!, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic)),
-                            if (widget.adhkar.note != null && widget.adhkar.note!.isNotEmpty)
+                            if (widget.adhkar.virtue != null &&
+                                widget.adhkar.virtue!.isNotEmpty)
+                              Text(widget.adhkar.virtue!,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontStyle: FontStyle.italic)),
+                            if (widget.adhkar.note != null &&
+                                widget.adhkar.note!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(widget.adhkar.note!, textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[700])),
+                                child: Text(widget.adhkar.note!,
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(color: Colors.grey[700])),
                               ),
                           ],
                         ),
@@ -120,7 +132,9 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
-                                color: isFinished ? Colors.green.withOpacity(0.7) : Colors.teal.withOpacity(0.4),
+                                color: isFinished
+                                    ? Colors.green.withOpacity(0.7)
+                                    : Colors.teal.withOpacity(0.4),
                               ),
                             ),
                           ),
@@ -150,7 +164,9 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                 color: isFavorite ? Colors.amber[600] : Colors.grey,
               ),
               onPressed: () {
-                ref.read(favoritesProvider.notifier).toggleFavorite(widget.adhkar.id);
+                ref
+                    .read(favoritesProvider.notifier)
+                    .toggleFavorite(widget.adhkar.id);
               },
             ),
           ),
