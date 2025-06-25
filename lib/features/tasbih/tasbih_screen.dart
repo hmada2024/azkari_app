@@ -10,18 +10,48 @@ class TasbihScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // مشاهدة قيمة العداد الحالية من الـ Provider
+    // 1. الوصول لبيانات الحالة والثيم
     final count = ref.watch(tasbihProvider);
-    // الوصول إلى دوال الـ Notifier (increment, reset)
     final tasbihNotifier = ref.read(tasbihProvider.notifier);
-    
     final theme = Theme.of(context);
+    // التحقق من وضع السطوع الحالي (فاتح أم داكن)
+    final isDarkMode = theme.brightness == Brightness.dark;
+    // الحصول على أبعاد الشاشة
+    final screenWidth = MediaQuery.of(context).size.width;
+
+
+    // 2. تحديد الألوان والنصوص بناءً على الثيم
+    // الألوان في الوضع الليلي
+    const Color darkButtonTextColor = Colors.black;
+    const Color darkButtonBgColor = Colors.white;
+    final Color darkCounterBorderColor = Colors.white.withOpacity(0.8);
+    const Color darkCounterTextColor = Colors.white;
+
+    // الألوان في الوضع الفاتح
+    const Color lightButtonTextColor = Colors.white;
+    final Color lightButtonBgColor = theme.primaryColor;
+    final Color lightCounterBorderColor = theme.primaryColor;
+    final Color lightCounterTextColor = theme.primaryColor;
+
+    // تحديد النصوص
+    final String buttonText = isDarkMode ? 'اضغط للعد' : 'سبّح';
+    
+
+    // 3. استخدام النسب المئوية للمقاسات
+    // حجم دائرة العداد سيكون 40% من عرض الشاشة
+    final double counterCircleSize = screenWidth * 0.45;
+    // حجم زر التسبيح سيكون 45% من عرض الشاشة
+    final double buttonCircleSize = screenWidth * 0.48;
+    // حجم خط العداد سيكون 20% من حجم الدائرة نفسها
+    final double counterFontSize = counterCircleSize * 0.4;
+    // حجم خط زر التسبيح سيكون 15% من حجم الدائرة نفسها
+    final double buttonFontSize = buttonCircleSize * 0.15;
+
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('السبحة الإلكترونية'),
         actions: [
-          // زر إعادة التعيين في الشريط العلوي
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'إعادة التعيين',
@@ -31,36 +61,45 @@ class TasbihScreen extends ConsumerWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          // استخدام MainAxisAlignment.spaceEvenly لتوزيع المسافات بشكل أفضل
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // عرض العداد
+            // عرض العداد (بمقاسات نسبية وألوان متغيرة)
             Container(
-              padding: const EdgeInsets.all(40),
+              width: counterCircleSize,
+              height: counterCircleSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: theme.primaryColor, width: 3),
+                border: Border.all(
+                  // استخدام الألوان المحددة بناءً على الثيم
+                  color: isDarkMode ? darkCounterBorderColor : lightCounterBorderColor,
+                  width: 3,
+                ),
               ),
-              child: Text(
-                count.toString(),
-                style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.bold,
-                  color: theme.primaryColor,
+              child: Center(
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    fontSize: counterFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? darkCounterTextColor : lightCounterTextColor,
+                  ),
                 ),
               ),
             ),
 
-            // زر التسبيح الرئيسي
+            // زر التسبيح الرئيسي (بمقاسات نسبية وألوان متغيرة)
             GestureDetector(
               onTap: () {
                 tasbihNotifier.increment();
-                HapticFeedback.lightImpact(); // إضافة اهتزاز عند الضغط
+                HapticFeedback.lightImpact();
               },
               child: Container(
-                width: 150,
-                height: 150,
+                width: buttonCircleSize,
+                height: buttonCircleSize,
                 decoration: BoxDecoration(
-                  color: theme.primaryColor,
+                  // استخدام الألوان المحددة بناءً على الثيم
+                  color: isDarkMode ? darkButtonBgColor : lightButtonBgColor,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -71,19 +110,18 @@ class TasbihScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'اضغط',
+                    buttonText, // استخدام النص المحدد بناءً على الثيم
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
+                      color: isDarkMode ? darkButtonTextColor : lightButtonTextColor,
+                      fontSize: buttonFontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 50), // مسافة فارغة في الأسفل
           ],
         ),
       ),
