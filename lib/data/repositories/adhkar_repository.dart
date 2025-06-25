@@ -29,4 +29,8 @@ class AdhkarRepository {
   Future<TasbihModel> addTasbih(String text) {
     return _dbHelper.addTasbih(text);
   }
+
+  Future<void> deleteTasbih(int id) {
+    return _dbHelper.deleteTasbih(id);
+  }
 }

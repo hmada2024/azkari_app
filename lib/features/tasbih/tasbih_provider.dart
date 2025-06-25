@@ -52,7 +52,6 @@ class TasbihState {
   }
 }
 
-
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   TasbihStateNotifier(this._ref) : super(TasbihState()) {
     _loadState();
@@ -133,6 +132,12 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.addTasbih(text);
     // إعادة تحميل قائمة التسابيح لإظهار التغيير
+    _ref.invalidate(tasbihListProvider);
+  }
+
+  Future<void> deleteTasbih(int id) async {
+    final repository = _ref.read(adhkarRepositoryProvider);
+    await repository.deleteTasbih(id);
     _ref.invalidate(tasbihListProvider);
   }
 }
