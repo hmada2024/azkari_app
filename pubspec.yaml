@@ -1,43 +1,49 @@
 name: azkari_app
 description: "A new Flutter project."
-publish_to: 'none'
-version: 1.0.0+1
+publish_to: "none"
+
+version: 1.1.0+2
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
+  sdk: ">=3.4.3 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_local_notifications: ^19.3.0
-
   flutter_localizations:
     sdk: flutter
-  flutter_native_splash: 2.4.1
+
   flutter_riverpod: ^2.4.9
+
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.2+1 # For Desktop
   path_provider: ^2.1.1
   shared_preferences: ^2.2.2
 
-  sqflite: ^2.3.0
-  sqflite_common_ffi: ^2.3.2+1
+  flutter_local_notifications: ^19.3.0
   timezone: ^0.10.1
 
 dev_dependencies:
-  flutter_launcher_icons: ^0.14.4
-  flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+  # Build tools
+  flutter_launcher_icons: ^0.13.1 # الإصدار الذي أضفته كان 0.14.4، يفضل استخدام الإصدارات المستقرة مثل 0.13.1
+  flutter_native_splash: ^2.4.1
+
+  # Database for Desktop tests
   sqlite3_flutter_libs: ^0.5.18
 
+# --- Flutter Specific Configurations ---
 flutter:
   uses-material-design: true
 
   assets:
     - assets/database_files/azkar.db
-    - assets/images/app_icon.ico
+    - assets/images/
     - assets/screenshots/
-    - assets/screenshots/adhkar_list_dark.png
-    - assets/screenshots/home_screen_light.png
 
   fonts:
     - family: Amiri
@@ -54,3 +60,21 @@ flutter:
           weight: 300
         - asset: assets/fonts/Cairo-SemiBold.ttf
           weight: 600
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_logo.webp"
+  min_sdk_android: 21
+
+# --- Flutter Native Splash Configuration ---
+# (Note: This is also at the root level)
+flutter_native_splash:
+  color: "#F5F5F5" # لون يتناسب مع الثيم الفاتح للتطبيق
+  color_dark: "#121212" # لون يتناسب مع الثيم الداكن للتطبيق
+  image: "assets/images/app_logo.webp"
+
+  android_12:
+    color: "#F5F5F5"
+    color_dark: "#121212"
+    image: "assets/images/app_logo.webp"
