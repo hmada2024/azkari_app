@@ -1,4 +1,5 @@
 import 'package:azkari_app/core/providers/settings_provider.dart';
+import 'package:azkari_app/core/utils/size_config.dart'; // ✨ استيراد جديد
 import 'package:azkari_app/features/favorites/favorites_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,18 +37,22 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
 
   @override
   Widget build(BuildContext context) {
+    // ✨ تهيئة أبعاد الشاشة
+    SizeConfig().init(context);
+
     final bool isFinished = _currentCount == 0;
     final theme = Theme.of(context);
     final double progress = (_initialCount - _currentCount) / _initialCount;
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
 
-    // مشاهدة قائمة المفضلة وتحديد ما إذا كان هذا الذكر في المفضلة
     final favoriteIds = ref.watch(favoritesProvider);
     final isFavorite = favoriteIds.contains(widget.adhkar.id);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: EdgeInsets.symmetric(
+          horizontal: SizeConfig.getResponsiveSize(12),
+          vertical: SizeConfig.getResponsiveSize(8)),
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -57,14 +62,19 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    16, 16, 48, 8), // مساحة لزر المفضلة
+                // ✨ استخدام قيم متجاوبة
+                padding: EdgeInsets.fromLTRB(
+                    SizeConfig.getResponsiveSize(16),
+                    SizeConfig.getResponsiveSize(16),
+                    SizeConfig.getResponsiveSize(48),
+                    SizeConfig.getResponsiveSize(8)),
                 child: Text(
                   widget.adhkar.text,
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontFamily: 'Amiri',
-                    fontSize: 20 * fontScale,
+                    // ✨ استخدام قيم متجاوبة
+                    fontSize: SizeConfig.getResponsiveSize(20) * fontScale,
                     height: 1.8,
                     color: theme.textTheme.bodyLarge?.color,
                   ),
@@ -77,14 +87,21 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                 Theme(
                   data: theme.copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    tilePadding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.getResponsiveSize(16.0)),
                     title: Text(
                       "الفضل والملاحظات",
-                      style: TextStyle(color: theme.primaryColor, fontSize: 14),
+                      style: TextStyle(
+                          color: theme.primaryColor,
+                          fontSize: SizeConfig.getResponsiveSize(14)),
                     ),
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 8.0),
+                        padding: EdgeInsets.fromLTRB(
+                            SizeConfig.getResponsiveSize(16.0),
+                            0,
+                            SizeConfig.getResponsiveSize(16.0),
+                            SizeConfig.getResponsiveSize(8.0)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -98,7 +115,8 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                             if (widget.adhkar.note != null &&
                                 widget.adhkar.note!.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
+                                padding: EdgeInsets.only(
+                                    top: SizeConfig.getResponsiveSize(8.0)),
                                 child: Text(widget.adhkar.note!,
                                     textAlign: TextAlign.right,
                                     style: TextStyle(color: Colors.grey[700])),
@@ -109,13 +127,13 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 8),
+              SizedBox(height: SizeConfig.getResponsiveSize(8)),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(SizeConfig.getResponsiveSize(16.0)),
                 child: GestureDetector(
                   onTap: _decrementCount,
                   child: Container(
-                    height: 55,
+                    height: SizeConfig.getResponsiveSize(55),
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
@@ -143,7 +161,7 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                           _currentCount.toString(),
                           style: TextStyle(
                             color: theme.textTheme.bodyLarge?.color,
-                            fontSize: 22,
+                            fontSize: SizeConfig.getResponsiveSize(22),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -154,7 +172,6 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
               ),
             ],
           ),
-          // زر المفضلة
           Positioned(
             top: 4,
             left: 4,
